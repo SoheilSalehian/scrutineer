@@ -127,9 +127,26 @@ public class Scrutineer {
     }
 
     ElasticSearchIdAndVersionStream createElasticSearchIdAndVersionStream(ScrutineerCommandLineOptions options) {
-        this.node = new NodeFactory().createNode(options);
-        this.client = node.client();
-        return new ElasticSearchIdAndVersionStream(new ElasticSearchDownloader(client, options.indexName, options.query, idAndVersionFactory), new ElasticSearchSorter(createSorter()), new IteratorFactory(idAndVersionFactory), SystemUtils.getJavaIoTmpDir().getAbsolutePath());
+
+    Settings settings = ImmutableSettings.settingsBuilder()
+      .put("cluster.name", "ownlocal-api")
+      .put("client.transport.ignore_cluster_name", false)
+      .put("node.client", true)
+      .put("client.transport.sniff", true)
+      .build();
+
+    Node myNode = NodeBuilder.nodeBuilder().settings(settings).clusterName("ownlocal-api").node();
+
+    final TransportClient transportClient = new TransportClient(settings);
+    transportClient.addTransportAddress(new InetSocketTransportAddress(options.clusterName, 9300));
+    this.node = myNode;
+    this.client = transportClient;
+
+    return new ElasticSearchIdAndVersionStream(
+    new ElasticSearchDownloader(client, options.indexName, options.query, idAndVersionFactory),
+    new ElasticSearchSorter(createSorter()), new IteratorFactory(idAndVersionFactory),
+    SystemUtils.getJavaIoTmpDir().getAbsolutePath());
+
     }
 
     private Sorter<IdAndVersion> createSorter() {
