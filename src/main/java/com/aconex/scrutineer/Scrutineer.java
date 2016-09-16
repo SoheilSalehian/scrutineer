@@ -24,6 +24,11 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+import org.elasticsearch.node.NodeBuilder;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.settings.*;
+
 public class Scrutineer {
 
     private static final Logger LOG = LogUtils.loggerForThisClass();
